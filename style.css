@@ -5,6 +5,10 @@
     padding: 0;
   }
   
+  html {
+  -webkit-text-size-adjust: 100%; /* evita zoom automático no Safari */
+  }
+
   body {
     font-family: Arial, sans-serif;
     font-size: 18px;
