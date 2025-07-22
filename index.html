@@ -137,9 +137,9 @@
         .then(res => res.json())
         .then(dados => {
           valorFipe = parseFloat(dados.Valor.replace('R$', '').replace('.', '').replace(',', '.'));
-        //   resultado.innerHTML = `
-        //     <strong>Valor Tabela FIPE:</strong> R$ ${valorFipe.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-        //   `;
+          resultado.innerHTML = `
+            <strong>Valor Tabela FIPE:</strong> R$ ${valorFipe.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          `;
         });
     });
 
@@ -164,9 +164,9 @@
         comparativo = `= Exatamente igual à Tabela FIPE`;
       }
 
-      resultado.innerHTML = `
-            <strong>Valor Tabela FIPE:</strong> R$ ${valorFipe.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          `;
+      // resultado.innerHTML = `
+      //       <strong>Valor Tabela FIPE:</strong> R$ ${valorFipe.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+      //     `;
       comparacao.innerHTML = `
         <p><strong>Valor Total com Taxa, Despesas e Frete:</strong> R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
         <p><strong>Comparação com FIPE:</strong> ${comparativo}</p>
