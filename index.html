@@ -165,11 +165,11 @@
       if (!valorFipe) {
         comparativo = 'Por favor, selecione um veículo e ano para consultar a Tabela FIPE.';
       } else if (total > valorFipe) {
-        comparativo = `<span class="maior">⬆️ Acima da Tabela FIPE em R$ ${(total - valorFipe).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<br><br></span>`;
+        comparativo = `<span class="maior">⬆️ Acima da Tabela FIPE em R$ ${(total - valorFipe).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<br><br><br><br><br><br></span>`;
       } else if (total < valorFipe) {
-        comparativo = `<span class="menor">⬇️ Abaixo da Tabela FIPE em R$ ${(valorFipe - total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<br><br></span>`;
+        comparativo = `<span class="menor">⬇️ Abaixo da Tabela FIPE em R$ ${(valorFipe - total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<br><br><br><br><br><br></span>`;
       } else {
-        comparativo = `= Exatamente igual à Tabela FIPE <br><br>`;
+        comparativo = `= Exatamente igual à Tabela FIPE <br><br><br><br><br><br>`;
       }
 
       // resultado.innerHTML = `
