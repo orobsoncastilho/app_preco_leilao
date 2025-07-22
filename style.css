@@ -125,6 +125,10 @@
     color: red;
     font-weight: 700;
   }
+
+  .comparacao {
+    margin-bottom: 40px;
+  }
   
   /* Para telas maiores, limite o conteúdo */
   @media(min-width: 600px) {
