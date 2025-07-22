@@ -1,0 +1,124 @@
+/* Reset básico */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    margin: 15px;
+    background-color: #f9f9f9;
+    color: #222;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10%;
+    padding-bottom: auto;
+  }
+  
+  .logo {
+    /* background-color: #007bff; */
+    height: 110px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-top: 5%;
+    margin-bottom: 120px;
+  }
+
+  h1 {
+    text-align: center;
+    /* margin-bottom: 90px; */
+    font-weight: 700;
+    color: #333;
+  }
+
+  img {
+    width: 6rem;
+    margin-bottom: 20px;
+    margin-right: 10px;
+  }
+  
+  /* Container inputs e selects */
+  label {
+    display: block;
+    margin-bottom: 40px;
+    font-weight: 95%;
+    color: #444;
+  }
+  
+  hr {
+    margin-top: 4%;
+    margin-bottom: 7%;
+  }
+
+  input[type="number"],
+  select {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 18px;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    font-size: 17px;
+    transition: border-color 0.3s ease;
+  }
+  
+  input[type="number"]:focus,
+  select:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  /* Botões alinhados lado a lado, abaixo dos inputs */
+  .buttons-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  
+  button {
+    flex: 1 1 45%; /* cada botão ocupa cerca de metade da largura com flexível */
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 14px 0;
+    border-radius: 7px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+    min-width: 140px;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Resultados */
+  #resultado, #comparacao {
+    margin-top: 30px;
+    font-size: 18px;
+    word-wrap: break-word;
+    color: #222;
+  }
+  
+  .maior {
+    color: green;
+    font-weight: 700;
+  }
+  
+  .menor {
+    color: red;
+    font-weight: 700;
+  }
+  
+  /* Para telas maiores, limite o conteúdo */
+  @media(min-width: 600px) {
+    body {
+      max-width: 600px;
+      margin-top: 0;
+    }
+  }
+  

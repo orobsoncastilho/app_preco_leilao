@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Análise de preço do leilão</title>
+  <!-- <style>
+    body { font-family: Arial; margin: 20px; }
+    label { display: block; margin-top: 10px; }
+    input, select { width: 200px; padding: 5px; }
+    button { margin-top: 15px; padding: 10px 20px; margin-right: 10px; }
+    #resultado, #comparacao { margin-top: 20px; font-size: 18px; }
+    .maior { color: green; }
+    .menor { color: red; }
+  </style> -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div class="logo">
+        <img src="img/Design sem nome.png" alt="logo do site">
+        <h1>Análise de preço do leilão</h1>
+    </div>
+
+  <label>Marca:</label>
+  <select id="marca"></select>
+
+  <label>Modelo:</label>
+  <select id="modelo"></select>
+
+  <label>Ano:</label>
+  <select id="ano"></select>
+
+  <hr>
+
+  <label>1. Valor do lance (R$):</label>
+  <input type="number" id="valorVenda" />
+
+  <label>2. Taxa (%) - padrão 5%:</label>
+  <input type="number" id="taxa" value="5" />
+
+  <label>3. Despesas (R$):</label>
+  <input type="number" id="despesas" />
+
+  <label>4. Frete (R$ - opcional):</label>
+  <input type="number" id="frete" />
+
+  <div class="buttons-container">
+    <button id="calcular">Calcular</button>
+    <button id="zerar">Zerar Consulta</button>
+  </div>
+  
+
+  <div id="resultado"></div>
+  <div id="comparacao"></div>
+
+  <script>
+    const marcaSelect = document.getElementById('marca');
+    const modeloSelect = document.getElementById('modelo');
+    const anoSelect = document.getElementById('ano');
+    const resultado = document.getElementById('resultado');
+    const comparacao = document.getElementById('comparacao');
+    const valorVendaInput = document.getElementById('valorVenda');
+    const taxaInput = document.getElementById('taxa');
+    const despesasInput = document.getElementById('despesas');
+    const freteInput = document.getElementById('frete');
+
+    let valorFipe = 0;
+
+    function carregarMarcas() {
+      marcaSelect.innerHTML = '<option value="">Selecione</option>';
+      modeloSelect.innerHTML = '';
+      anoSelect.innerHTML = '';
+      resultado.innerText = '';
+      comparacao.innerText = '';
+      fetch('https://parallelum.com.br/fipe/api/v1/carros/marcas')
+        .then(res => res.json())
+        .then(marcas => {
+          marcas.forEach(marca => {
+            const option = document.createElement('option');
+            option.value = marca.codigo;
+            option.text = marca.nome;
+            marcaSelect.appendChild(option);
+          });
+        });
+    }
+
+    carregarMarcas();
+
+    // Quando selecionar marca
+    marcaSelect.addEventListener('change', () => {
+      modeloSelect.innerHTML = '';
+      anoSelect.innerHTML = '';
+      resultado.innerText = '';
+      comparacao.innerText = '';
+      const marcaId = marcaSelect.value;
+
+      fetch(`https://parallelum.com.br/fipe/api/v1/carros/marcas/${marcaId}/modelos`)
+        .then(res => res.json())
+        .then(data => {
+          data.modelos.forEach(modelo => {
+            const option = document.createElement('option');
+            option.value = modelo.codigo;
+            option.text = modelo.nome;
+            modeloSelect.appendChild(option);
+          });
+        });
+    });
+
+    // Quando selecionar modelo
+    modeloSelect.addEventListener('change', () => {
+      anoSelect.innerHTML = '';
+      resultado.innerText = '';
+      comparacao.innerText = '';
+      const marcaId = marcaSelect.value;
+      const modeloId = modeloSelect.value;
+
+      fetch(`https://parallelum.com.br/fipe/api/v1/carros/marcas/${marcaId}/modelos/${modeloId}/anos`)
+        .then(res => res.json())
+        .then(anos => {
+            anos.forEach((ano) => {
+                const option = document.createElement('option');
+                option.value = ano.codigo;
+                option.text = ano.nome;
+                anoSelect.appendChild(option);
+            });
+
+        });
+    });
+
+    // Quando selecionar ano
+    anoSelect.addEventListener('change', () => {
+      const marcaId = marcaSelect.value;
+      const modeloId = modeloSelect.value;
+      const anoId = anoSelect.value;
+
+      fetch(`https://parallelum.com.br/fipe/api/v1/carros/marcas/${marcaId}/modelos/${modeloId}/anos/${anoId}`)
+        .then(res => res.json())
+        .then(dados => {
+          valorFipe = parseFloat(dados.Valor.replace('R$', '').replace('.', '').replace(',', '.'));
+        //   resultado.innerHTML = `
+        //     <strong>Valor Tabela FIPE:</strong> R$ ${valorFipe.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+        //   `;
+        });
+    });
+
+    // Botão calcular
+    document.getElementById('calcular').addEventListener('click', () => {
+      const valorVenda = parseFloat(valorVendaInput.value || 0);
+      const taxa = parseFloat(taxaInput.value || 5);
+      const despesas = parseFloat(despesasInput.value || 0);
+      const frete = parseFloat(freteInput.value || 0);
+
+      const valorTaxa = valorVenda * (taxa / 100);
+      const total = valorVenda + valorTaxa + despesas + frete;
+
+      let comparativo = '';
+      if (!valorFipe) {
+        comparativo = 'Por favor, selecione um veículo e ano para consultar a Tabela FIPE.';
+      } else if (total > valorFipe) {
+        comparativo = `<span class="maior">⬆️ Acima da Tabela FIPE em R$ ${(total - valorFipe).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
+      } else if (total < valorFipe) {
+        comparativo = `<span class="menor">⬇️ Abaixo da Tabela FIPE em R$ ${(valorFipe - total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>`;
+      } else {
+        comparativo = `= Exatamente igual à Tabela FIPE`;
+      }
+
+      resultado.innerHTML = `
+            <strong>Valor Tabela FIPE:</strong> R$ ${valorFipe.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          `;
+      comparacao.innerHTML = `
+        <p><strong>Valor Total com Taxa, Despesas e Frete:</strong> R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+        <p><strong>Comparação com FIPE:</strong> ${comparativo}</p>
+      `;
+    });
+
+    // Botão zerar
+    document.getElementById('zerar').addEventListener('click', () => {
+      valorVendaInput.value = '';
+      taxaInput.value = 5;
+      despesasInput.value = '';
+      freteInput.value = '';
+      valorFipe = 0;
+
+      resultado.innerText = '';
+      comparacao.innerText = '';
+
+      marcaSelect.selectedIndex = 0;
+      modeloSelect.innerHTML = '';
+      anoSelect.innerHTML = '';
+    });
+  </script>
+</body>
+</html>
