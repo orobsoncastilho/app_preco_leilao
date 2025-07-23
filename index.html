@@ -76,8 +76,8 @@
 
     function carregarMarcas() {
       marcaSelect.innerHTML = '<option value="">Selecione</option>';
-      modeloSelect.innerHTML = '';
-      anoSelect.innerHTML = '';
+      modeloSelect.innerHTML = '<option value="">Selecione</option>';
+      anoSelect.innerHTML = '<option value="">Selecione</option>';
       resultado.innerText = '';
       comparacao.innerText = '';
       fetch('https://parallelum.com.br/fipe/api/v1/carros/marcas')
