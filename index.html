@@ -37,29 +37,30 @@
 
   <label>Ano:</label>
   <select id="ano"></select>
-
+  <div class="buscaFipe"><button id="buscarTabelaFipe">CONSULTAR</button></div>
+  <div id="resultado"></div>
   <hr>
 
   <label>1. Valor do lance (R$):</label>
-  <input type="number" id="valorVenda" />
+  <input type="text" id="valorVenda" />
 
   <label>2. Taxa (%) - padrão 5%:</label>
-  <input type="number" id="taxa" value="5" />
+  <input type="text" id="taxa" value="5" />
 
   <label>3. Despesas (R$):</label>
-  <input type="number" id="despesas" />
+  <input type="text" id="despesas" />
 
   <label>4. Frete (R$ - opcional):</label>
-  <input type="number" id="frete" />
+  <input type="text" id="frete" />
 
   <div class="buttons-container">
-    <button id="calcular">Calcular</button>
-    <button id="zerar">Zerar Consulta</button>
+    <button id="calcular">CALCULAR</button>
+    <button id="zerar">ZERAR CONSULTA</button>
   </div>
   
-
-  <div id="resultado"></div>
   <div id="comparacao"></div>
+
+  <footer>V 2.0</footer>
 
   <script>
     const marcaSelect = document.getElementById('marca');
@@ -75,9 +76,9 @@
     let valorFipe = 0;
 
     function carregarMarcas() {
-      marcaSelect.innerHTML = '<option value="">Selecione</option>';
-      modeloSelect.innerHTML = '<option value="">Selecione</option>';
-      anoSelect.innerHTML = '<option value="">Selecione</option>';
+      marcaSelect.innerHTML = '<option value="">Selecione uma marca</option>';
+      modeloSelect.innerHTML = '';
+      anoSelect.innerHTML = '';
       resultado.innerText = '';
       comparacao.innerText = '';
       fetch('https://parallelum.com.br/fipe/api/v1/carros/marcas')
@@ -92,6 +93,17 @@
         });
     }
 
+    function aplicarMascaraMoeda(input) {
+      input.addEventListener('input', () => {
+        let valor = input.value.replace(/\D/g, '');
+        valor = (parseInt(valor, 10) / 100).toFixed(2);
+        valor = valor.replace('.', ',');
+        valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        input.value = 'R$ ' + valor;
+      });
+    }
+
+
     carregarMarcas();
 
     // Quando selecionar marca
@@ -105,14 +117,20 @@
       fetch(`https://parallelum.com.br/fipe/api/v1/carros/marcas/${marcaId}/modelos`)
         .then(res => res.json())
         .then(data => {
+          modeloSelect.innerHTML = '<option value="">Selecione um modelo</option>';
           data.modelos.forEach(modelo => {
-            const option = document.createElement('option');
-            option.value = modelo.codigo;
-            option.text = modelo.nome;
-            modeloSelect.appendChild(option);
-          });
+          const option = document.createElement('option');
+          option.value = modelo.codigo;
+          option.text = modelo.nome;
+          modeloSelect.appendChild(option);
+        });
+
         });
     });
+
+    aplicarMascaraMoeda(valorVendaInput);
+    aplicarMascaraMoeda(despesasInput);
+    aplicarMascaraMoeda(freteInput);
 
     // Quando selecionar modelo
     modeloSelect.addEventListener('change', () => {
@@ -125,6 +143,7 @@
       fetch(`https://parallelum.com.br/fipe/api/v1/carros/marcas/${marcaId}/modelos/${modeloId}/anos`)
         .then(res => res.json())
         .then(anos => {
+            anoSelect.innerHTML = '<option value="">Selecione um ano</option>';
             anos.forEach((ano) => {
                 const option = document.createElement('option');
                 option.value = ano.codigo;
@@ -136,48 +155,76 @@
     });
 
     // Quando selecionar ano
-    anoSelect.addEventListener('change', () => {
+    document.getElementById('buscarTabelaFipe').addEventListener('click', () => {
       const marcaId = marcaSelect.value;
       const modeloId = modeloSelect.value;
       const anoId = anoSelect.value;
+
+      if (!marcaId || !modeloId || !anoId) {
+        alert('Selecione marca, modelo e ano antes de verificar a Tabela FIPE.');
+        return;
+      }
+
+      resultado.innerText = 'Consultando tabela FIPE...';
+      comparacao.innerText = '';
 
       fetch(`https://parallelum.com.br/fipe/api/v1/carros/marcas/${marcaId}/modelos/${modeloId}/anos/${anoId}`)
         .then(res => res.json())
         .then(dados => {
           valorFipe = parseFloat(dados.Valor.replace('R$', '').replace('.', '').replace(',', '.'));
           resultado.innerHTML = `
-            <strong>Valor Tabela FIPE:</strong> R$ ${valorFipe.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            <strong>Valor tabela FIPE:</strong> R$ ${valorFipe.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           `;
+        })
+        .catch(err => {
+          resultado.innerHTML = 'Erro ao consultar Tabela FIPE.';
+          console.error(err);
         });
     });
 
     // Botão calcular
     document.getElementById('calcular').addEventListener('click', () => {
-      const valorVenda = parseFloat(valorVendaInput.value || 0);
+      const valorVenda = parseFloat(valorVendaInput.value.replace(/[R$\s.]/g, '').replace(',', '.') || 0);
       const taxa = parseFloat(taxaInput.value || 5);
-      const despesas = parseFloat(despesasInput.value || 0);
-      const frete = parseFloat(freteInput.value || 0);
+      const despesas = parseFloat(despesasInput.value.replace(/[R$\s.]/g, '').replace(',', '.') || 0);
+      const frete = parseFloat(freteInput.value.replace(/[R$\s.]/g, '').replace(',', '.') || 0);
 
       const valorTaxa = valorVenda * (taxa / 100);
       const total = valorVenda + valorTaxa + despesas + frete;
 
       let comparativo = '';
+      let comparativoDesconto = '';
+      let analiseNegocio = '';
+
       if (!valorFipe) {
-        comparativo = 'Por favor, selecione um veículo e ano para consultar a Tabela FIPE.';
-      } else if (total > valorFipe) {
-        comparativo = `<span class="maior">⬆️ Acima da Tabela FIPE em R$ ${(total - valorFipe).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<br><br><br><br><br><br></span>`;
-      } else if (total < valorFipe) {
-        comparativo = `<span class="menor">⬇️ Abaixo da Tabela FIPE em R$ ${(valorFipe - total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<br><br><br><br><br><br></span>`;
+        comparativo = 'Por favor, selecione um veículo, ano e consulte a Tabela FIPE.';
       } else {
-        comparativo = `= Exatamente igual à Tabela FIPE <br><br><br><br><br><br>`;
+        if (total > valorFipe) {
+          comparativo = `<span class="vermelho">⬆️ Acima da tabela FIPE em R$ ${(total - valorFipe).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<br></span>`;
+        } else if (total < valorFipe) {
+          comparativo = `<span class="verde">⬇️ Abaixo da tabela FIPE em R$ ${(valorFipe - total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}<br></span>`;
+        } else {
+          comparativo = `= Exatamente igual à tabela FIPE <br>`;
+        }
+
+        const percentualPago = (total / valorFipe) * 100;
+
+        if (percentualPago < 70) {
+          const lucro = (valorFipe * 0.7 - total).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+          comparativoDesconto = `<span class="verde">💰 Você está pagando ${percentualPago.toFixed(2)}% do valor da FIPE <br></span>`;
+          analiseNegocio = `<span class="verde">✅ Arremate com lucro de R$ ${lucro}<br></span>`;
+        } else {
+          const prejuizo = (total - valorFipe * 0.7).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+          comparativoDesconto = `<span class="vermelho">⚠️ Você está pagando ${percentualPago.toFixed(2)}% do valor da FIPE <br></span>`;
+          analiseNegocio = `<span class="vermelho">❌ Arremate com prejuízo de R$ ${prejuizo}<br></span>`;
+        }
       }
 
-      // resultado.innerHTML = `
-      //       <strong>Valor Tabela FIPE:</strong> R$ ${valorFipe.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-      //     `;
       comparacao.innerHTML = `
-        <p><strong>Valor Total com Taxa, Despesas e Frete:</strong> R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-        <p><strong>Comparação com FIPE:</strong> ${comparativo}</p>
+        <p><strong>Valor total com taxa , despesas e frete:</strong> R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+        <p><br><strong>Comparação com FIPE:</strong> ${comparativo}<br></p>
+        <p><strong>Comparação com 70% da FIPE:</strong> ${comparativoDesconto}<br></p>
+        <p><strong>Análise de lance:</strong> ${analiseNegocio}<br></p>
       `;
     });
 
